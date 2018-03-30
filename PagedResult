@@ -1,0 +1,122 @@
+public class PagedResult<T> {
+
+	private List<T> list;
+	private long total;
+
+	private PageInfo info;
+
+	/*private String sql;*/
+
+	/**
+	 * 自定义的构造器。
+	 *
+	 * @param data
+	 *            List<T>
+	 *
+	 * @param total
+	 *            long
+	 *
+	 * @param pageIndex
+	 *            int
+	 *
+	 * @param pageSize
+	 *            int
+	 */
+	@Deprecated
+	public PagedResult(List<T> data, long total, int pageIndex, int pageSize) {
+		this.list = data;
+		this.total = total;
+		this.info = new PageInfo(pageIndex, pageSize, total);
+	}
+
+	/**
+	 * 自定义的构造器。
+	 *
+	 * @param data
+	 *            List<T>
+	 *
+	 * @param total
+	 *            long
+	 *
+	 * @param ftspPageInfo 分页信息
+	 *            int
+	 *
+	 */
+	public PagedResult(List<T> data, long total, FtspPageInfo ftspPageInfo) {
+		this.list = data;
+		this.total = total;
+		if (ftspPageInfo.getPageType() == PageType.OFFSET) {
+			this.info = new PageInfo(ftspPageInfo.getIndex(), ftspPageInfo.getPageSize(), total);
+		} else {
+			this.info = new PageInfo(ftspPageInfo.getPageIndex(), ftspPageInfo.getPageSize(), total);
+		}
+		this.info.setIndex(ftspPageInfo.getIndex());
+	}
+
+	/**
+	 * 获取data。
+	 *
+	 * @return List<T>
+	 */
+	public List<T> getList() {
+		return list;
+	}
+
+	/**
+	 * 设置data。
+	 *
+	 * @param data
+	 *            List<T>
+	 */
+	public void setList(List<T> data) {
+		this.list = data;
+	}
+
+	/**
+	 * 获取total。
+	 *
+	 * @return long
+	 */
+	public long getTotal() {
+		return total;
+	}
+
+	/**
+	 * 设置total。
+	 *
+	 * @param total
+	 *            long
+	 */
+	public void setTotal(long total) {
+		this.total = total;
+	}
+
+	/**
+	 * 返回info。
+	 *
+	 * @return PageInfo
+	 */
+	public PageInfo getInfo() {
+		return this.info;
+	}
+/*
+	*//**
+	 * 设置sql。
+	 *
+	 * @param sql
+	 *            String
+	 *//*
+	public void setSql(String sql) {
+		this.sql = sql;
+	}
+
+	*//**
+	 * 获取sql。
+	 *
+	 * @return String
+	 *//*
+	public String getSql() {
+		return sql;
+	}*/
+
+}
