@@ -1,0 +1,14 @@
+<!-- 启用spring mvc 注解 -->
+    <mvc:annotation-driven>
+        <mvc:argument-resolvers>
+            <bean class="com.kungeek.ftsp.api.infrastructure.core.mvc.handler.requestargs.FtspJsonMethodArgumentsResolver"></bean>
+            <bean class="com.kungeek.ftsp.api.infrastructure.core.mvc.handler.requestargs.FtspPageMethodArgumentsResolver"></bean>
+        </mvc:argument-resolvers>
+        <mvc:message-converters>
+            <bean class="com.kungeek.ftsp.api.infrastructure.core.mvc.handler.FtspMappingJackson2HttpMessageConverter">
+            </bean>
+        </mvc:message-converters>
+        <mvc:return-value-handlers>
+            <bean class="com.kungeek.ftsp.api.infrastructure.core.mvc.handler.returnjson.FtspReturnHandler"/>
+        </mvc:return-value-handlers>
+    </mvc:annotation-driven>
