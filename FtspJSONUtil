@@ -1,0 +1,546 @@
+/**
+ * Copyright(c) Beijing Kungeek Science & Technology Ltd. 
+ */
+package com.kungeek.ftsp.api.util;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
+import com.fasterxml.jackson.core.PrettyPrinter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+
+/**
+ * <pre>
+ * FtspJSON 工具类。
+ * </pre>
+ * 
+ * @version 1.00.00
+ * 
+ *          <pre>
+ * 修改记录
+ *    修改后版本:     修改人：  修改日期:     修改内容:
+ *          </pre>
+ */
+public class FtspJSONUtil {
+
+	private static final Log log = LogFactory.getLog(FtspJSONUtil.class);
+	/**
+	 * 初始化 objectMapper。
+	 */
+	public static final ObjectMapper objectMapper;
+	public static final PrettyPrinter PRETTY_PRINTER = new DefaultPrettyPrinter();
+
+	static {
+		objectMapper = new ObjectMapper();
+
+		// 去掉默认的时间戳格式
+		// objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS,
+		// false);
+		// 设置为中国上海时区
+		 objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
+
+		objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
+		objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+		// 反序列化时，属性不存在的兼容处理
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		// 单引号处理
+		// objectMapper.configure(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_SINGLE_QUOTES,
+		// true);
+
+		// 忽略属性的双引号
+		// objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES,
+		// true);
+		// 日期的统一格式
+		objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+		// 设置属性为Null的时候不序列化
+		objectMapper.setSerializationInclusion(Include.NON_NULL);
+
+	}
+
+	/**
+	 * Json字符串转成对象。
+	 * 
+	 * @param json
+	 *            Json字符串
+	 * @param clazz
+	 *            对象的类
+	 * @param <T>
+	 *            对象类型
+	 * @return T
+	 */
+	public static <T> T parseToJSONObject(String json, Class<T> clazz) {
+		try {
+			return objectMapper.readValue(json, clazz);
+		} catch (JsonParseException e) {
+			log.error(e.getMessage(), e);
+		} catch (JsonMappingException e) {
+			log.error(e.getMessage(), e);
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+		return null;
+	}
+	
+	/**
+	 * 对象转换为json串。
+	 * 
+	 * @param object
+	 *            目标对象
+	 * @return String 目标对象的jsonString
+	 */
+	public static String objectToJsonString(Object object) {
+		try {
+			return objectMapper.writeValueAsString(object);
+		} catch (JsonProcessingException e) {
+			log.error(e.getMessage(), e);
+		}
+		return "";
+	}
+
+	/**
+	 * Json字符串转成集合对象。
+	 * 
+	 * @param json
+	 *            String
+	 * @param clz
+	 *            类型
+	 * @param <T>
+	 *            对象类型
+	 * @return List<T>
+	 */
+	public static <T> List<T> toCollection(String json, Class<T> clz) {
+
+		List<T> list = null;
+		try {
+			JavaType javaType = objectMapper.getTypeFactory().constructParametricType(List.class, clz);
+			list = objectMapper.readValue(json, javaType);
+		} catch (JsonParseException e) {
+			log.error(e.getMessage(), e);
+		} catch (JsonMappingException e) {
+			log.error(e.getMessage(), e);
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+		return list;
+	}
+	
+	/**
+	 * 转list<Map>。
+	 * @param jsonStr json字符串
+	 * @return List<Map<String,Object>>
+	 */
+	public static List<Map<String,Object>> parseToListMap(String jsonStr){
+		
+		List<Map<String,Object>> list = null;
+		try {
+			TypeFactory typeFactory = objectMapper.getTypeFactory();
+			JavaType constructParametricType = typeFactory.constructParametricType(List.class,typeFactory.constructMapType(Map.class, String.class, Object.class));
+			list = objectMapper.readValue(jsonStr, constructParametricType);
+        } catch (JsonParseException e) {
+			log.error(e.getMessage(), e);
+		} catch (JsonMappingException e) {
+			log.error(e.getMessage(), e);
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+		return list;
+		
+	}
+	
+	/**
+	 * json串转换为Map。
+	 * 
+	 * @param jsonString
+	 *            String
+	 * @return Map<String, Object>
+	 */
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> parseToMap(String jsonString) {
+		try {
+			return objectMapper.readValue(jsonString, Map.class);
+		} catch (JsonParseException e) {
+			log.error(e.getMessage(), e);
+		} catch (JsonMappingException e) {
+			log.error(e.getMessage(), e);
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+		return null;
+	}
+
+	/**
+	 * 获取过滤对应字段的JsonConfig。
+	 * 
+	 * @param <T> This is the type parameter
+	 * @param propertyes String...
+	 * @param t	T
+	 * @return ObjectNode {@link ObjectNode}
+	 */
+	public static <T> ObjectNode objectToJsonStringFiled(T t, String... propertyes) {
+		
+		ObjectMapper om = new ObjectMapper();
+
+		om.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
+		om.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+		// 反序列化时，属性不存在的兼容处理
+		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		// 属性为NULL 不序列化
+		om.setSerializationInclusion(Include.NON_NULL);
+
+		// 日期的统一格式
+		om.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+
+		SimpleFilterProvider filter = new SimpleFilterProvider().addFilter(t.getClass().getName(),
+				SimpleBeanPropertyFilter.filterOutAllExcept(propertyes));
+		filter.setFailOnUnknownId(false);
+		om.setFilterProvider(filter);
+
+		om.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+			/**
+			 * 序列号。
+			 */
+			private static final long serialVersionUID = 6436459496039339288L;
+
+			@Override
+			public Object findFilterId(Annotated annotated) {
+				return annotated.getName();
+			};
+		});
+
+		try {
+			ObjectNode jsonNode = om.readValue(om.writeValueAsString(t), ObjectNode.class);
+			return jsonNode;
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * 获取过滤对应字段的JsonConfig。
+	 * @param <T> This is the type parameter
+	 *  
+	 * @param filter
+	 *            过滤器
+	 * @param t <T>
+	 * 
+	 * @return ObjectNode 获取到的config
+	 */
+	public static <T> ObjectNode objectToJsonStringFiled(T t, SimpleFilterProvider filter) {
+
+		ObjectMapper om = new ObjectMapper();
+
+		om.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
+		om.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+		// 反序列化时，属性不存在的兼容处理
+		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		// 属性为NULL 不序列化
+		om.setSerializationInclusion(Include.NON_NULL);
+
+		// 日期的统一格式
+		om.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+		filter.setFailOnUnknownId(false);
+		om.setFilterProvider(filter);
+
+		om.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+			/**
+			 * 序列号。
+			 */
+			private static final long serialVersionUID = 6436459496039339288L;
+
+			@Override
+			public Object findFilterId(Annotated annotated) {
+				return annotated.getName();
+			};
+		});
+
+		try {
+			ObjectNode jsonNode = om.readValue(om.writeValueAsString(t), ObjectNode.class);
+			return jsonNode;
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+
+		return objectMapper.getNodeFactory().objectNode();
+	}
+
+	/**
+	 * 获取过滤对应字段的JsonConfig。
+	 * @param <T> This is the type parameter 
+	 * @param list List<T>
+	 * @param filters String[] 字段参数
+	 * @param propertyes String[]
+	 * @return ArrayNode
+	 */
+	public static <T> ArrayNode listToJsonStringFiled(List<T> list,String[] filters, String... propertyes) {
+
+		if (list == null || list.size() == 0) {
+			return objectMapper.getNodeFactory().arrayNode();
+		}
+
+		ObjectMapper om = new ObjectMapper();
+		T t = list.get(0);
+		om.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
+		om.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+		// 反序列化时，属性不存在的兼容处理
+		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		// 属性为NULL 不序列化
+		om.setSerializationInclusion(Include.NON_NULL);
+
+		// 日期的统一格式
+		om.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+
+		SimpleFilterProvider filter = new SimpleFilterProvider().addFilter(t.getClass().getName(),
+				SimpleBeanPropertyFilter.filterOutAllExcept(propertyes));
+		
+		if(filters != null){
+			for (int i = 0; i < filters.length; i++) {
+				filter.addFilter(filters[i], SimpleBeanPropertyFilter.filterOutAllExcept(propertyes));
+			}
+		}
+		
+		om.setFilterProvider(filter);
+
+		om.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+			/**
+			 * 序列号。
+			 */
+			private static final long serialVersionUID = 6436459496039339288L;
+
+			@Override
+			public Object findFilterId(Annotated annotated) {
+				return annotated.getName();
+			};
+		});
+
+		try {
+			ArrayNode jsonNode = om.readValue(om.writeValueAsString(list), ArrayNode.class);
+			return jsonNode;
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+
+		return objectMapper.getNodeFactory().arrayNode();
+	}
+
+	/**
+	 * 获取JsonNode 对象。
+	 * 
+	 * @param json
+	 *            字符串
+	 * @return JsonNode
+	 */
+	public static JsonNode getJsonNode(String json) {
+		try {
+			return objectMapper.readValue(json, JsonNode.class);
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+
+		return null;
+	}
+
+	
+	/**
+	 * 获取json字符串，解决不含key返回错误问题。
+	 * 
+	 * @param jsonNode
+	 *            JsonNode
+	 * @param key
+	 *            String
+	 * @return String 获取到的字符串
+	 */
+	public static String getString(JsonNode jsonNode, String key) {
+
+		JsonNode tempNode = jsonNode.findValue(key);
+
+		if (tempNode != null) {
+			if (tempNode instanceof ObjectNode || tempNode instanceof ArrayNode) {
+				return tempNode.toString();
+			} else {
+				return tempNode.asText();
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * 获取json字符串，解决不含key返回错误问题。
+	 * 
+	 * @param jsonNode
+	 *            JsonNode
+	 * @param key
+	 *            String
+	 * @return String 获取到的字符串
+	 */
+	public static double getDouble(JsonNode jsonNode, String key) {
+
+		JsonNode tempNode = jsonNode.findValue(key);
+
+		if (tempNode != null) {
+			return tempNode.asDouble();
+		}
+
+		return 0;
+
+	}
+
+	/**
+	 * 获取过滤对应字段的JsonConfig。
+	 * @param <T> This is the type parameter
+	 * @param t <T>
+	 * @param filter 过滤器
+	 * @param map Map<Class<?>, Class<?>>
+	 * @return ObjectNode 获取到的config
+	 */
+	public static <T> ObjectNode objectToJsonStringFiled(T t, SimpleFilterProvider filter, Map<Class<?>, Class<?>> map) {
+		ObjectMapper om = new ObjectMapper();
+
+		om.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
+		om.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+		// 反序列化时，属性不存在的兼容处理
+		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		// 属性为NULL 不序列化
+		om.setSerializationInclusion(Include.NON_NULL);
+
+		// 日期的统一格式
+		om.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+		filter.setFailOnUnknownId(false);
+		om.setFilterProvider(filter);
+		om.setMixIns(map);
+
+		om.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+			/**
+			 * 序列号。
+			 */
+			private static final long serialVersionUID = 6436459496039339288L;
+
+			@Override
+			public Object findFilterId(Annotated annotated) {
+				return annotated.getName();
+			};
+		});
+
+		try {
+			ObjectNode jsonNode = om.readValue(om.writeValueAsString(t), ObjectNode.class);
+			return jsonNode;
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+		return objectMapper.getNodeFactory().objectNode();
+	}
+	
+	/**
+	 * 获取过滤对应字段的JsonConfig。
+	 * @param <T> This is the type parameter
+	 * @param t <T>
+	 * @param map Map<Class<?>, Class<?>>
+	 * @param propertyes String[] 字段参数
+	 * @return ObjectNode
+	 */
+	public static <T> ObjectNode objectToJsonStringFiled(T t, Map<Class<?>, Class<?>> map, String... propertyes) {
+
+		ObjectMapper om = new ObjectMapper();
+
+		om.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
+		om.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+		// 反序列化时，属性不存在的兼容处理
+		om.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		// 属性为NULL 不序列化
+		om.setSerializationInclusion(Include.NON_NULL);
+
+		// 日期的统一格式
+		om.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+
+		SimpleFilterProvider filter = new SimpleFilterProvider().addFilter(t.getClass().getName(),
+				SimpleBeanPropertyFilter.filterOutAllExcept(propertyes));
+		filter.setFailOnUnknownId(false);
+		om.setFilterProvider(filter);
+		om.setMixIns(map);
+
+		om.setAnnotationIntrospector(new JacksonAnnotationIntrospector() {
+			/**
+			 * 序列号。
+			 */
+			private static final long serialVersionUID = 6436459496039339288L;
+
+			@Override
+			public Object findFilterId(Annotated annotated) {
+				return annotated.getName();
+			};
+		});
+
+		try {
+			ObjectNode jsonNode = om.readValue(om.writeValueAsString(t), ObjectNode.class);
+			return jsonNode;
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
+
+		return null;
+	}
+
+	/**
+	 * 过滤对象中子对象属性。
+	 * @param <T>	集合参数
+	 * @param pr PagedResult
+	 * @param fileds 需要序列化的字段
+	 * @param map 子对象和子对象过滤字段Filter接口
+	 * @return Object
+	 */
+	public static  <T> Object pagedResultFiledToJson(PagedResult<T> pr, String[] fileds, Map<Class<?>, Class<?>> map) {
+
+		SimpleFilterProvider filters = new SimpleFilterProvider().addFilter("getList",
+				SimpleBeanPropertyFilter.filterOutAllExcept(fileds));
+
+		return FtspJSONUtil.objectToJsonStringFiled(pr, filters, map);
+	}
+
+
+	public static <T>  Object pagedResultFiledToJson(PagedResult<T> pr, String[] fileds) {
+
+		SimpleFilterProvider filters = new SimpleFilterProvider().addFilter("getList",
+				SimpleBeanPropertyFilter.filterOutAllExcept(fileds));
+
+		return FtspJSONUtil.objectToJsonStringFiled(pr, filters);
+	}
+
+	/**
+	 * 生成格式化的JSON字符串
+	 * @param object
+	 * @return
+	 */
+	public static String perttyPrint(Object object) {
+		String print = null;
+		try {
+			print = FtspJSONUtil.objectMapper.writer(PRETTY_PRINTER).writeValueAsString(object);
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		return print;
+	}
+}
