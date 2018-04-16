@@ -1,0 +1,40 @@
+#在许多时候,我们需要把一些全局的参数配置到配置文件里面,提供给java程序使用,为了减少代码量及高阅读性,
+#理想的是把我们所需要的全局属性注入到类里面,由程序代码直接引用.
+普通引入properties方法
+在spring的配置文件applicationContext.xml配置
+
+<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="locations">
+        <list>
+            <value>classpath*:application.properties</value>
+        </list>
+    </property>
+</bean>
+改进后的properties引入方法
+在spring的配置文件applicationContext.xml配置
+<bean id="configProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+    <property name="locations">
+        <list>
+            <value>classpath*:application.properties</value>
+        </list>
+    </property>
+</bean>
+
+<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer">
+    <property name="properties" ref="configProperties"></property>
+</bean>
+
+application.properties文件配置内容
+# 默认头像
+userDefaultHeaderUrl=http://www.maoyupeng.com/Male.png
+java类的使用示例
+@Controller
+@RequestMapping(value = "/userController")
+public class userController {
+    private static final Logger logger = Logger.getLogger(UserProjectController.class);
+
+    @Value("#{configProperties['userDefaultHeaderUrl']}")
+    private String userDefaultHeaderUrl;
+
+    
+}
