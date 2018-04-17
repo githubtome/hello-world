@@ -1,0 +1,98 @@
+大致有三种方式
+  1、使用 org.springframework.core.env.Environment
+  2、使用占位符
+  3、使用 spring 表达式(SpEL)
+application.properties
+  datasource.url=jdbc:mysql://localhost:3306/spring_test?useUnicode=true&characterEncoding=utf-8
+  datasource.driverClassName=com.mysql.jdbc.Driver
+  datasource.username=root
+  datasource.password=123456
+  datasource.initialSize=5
+  datasource.maxActive=10
+  datasource.maxWait=6000
+  
+ Environment
+ @Configuration
+  @PropertySource("classpath:application.properties")
+  @EnableTransactionManagement
+  public class DataConfig {
+      @Autowired
+      private Environment env;
+
+      @Bean
+      public DruidDataSource dataSource() {
+          DruidDataSource ds = new DruidDataSource();
+          ds.setDriverClassName(env.getProperty("datasource.driverClassName"));
+          ds.setUrl(env.getProperty("datasource.url"));
+          ds.setUsername(env.getProperty("datasource.username"));
+          ds.setPassword(env.getProperty("datasource.password"));
+          ds.setInitialSize(5);
+          ds.setMaxActive(10);
+          ds.setMaxWait(60000);
+          return ds;
+      }
+      ...
+  }
+  @PropertySource 引入属性文件
+  注入 Environment，使用 getProperty 系列方法获取属性
+  SpEL
+  @Configuration
+@PropertySource("classpath:application.properties")
+@EnableTransactionManagement
+public class DataTestConfig {
+    @Value("${datasource.driverClassName}")
+    private String driverClassName;
+
+    @Value("${datasource.url}")
+    private String url;
+
+    @Value("${datasource.username}")
+    private String username;
+
+    @Value("${datasource.password}")
+    private String password;
+    
+    @Value("${datasource.initialSize}")
+    private int initialSize;
+
+    @Value("${datasource.maxActive}")
+    private int maxActive;
+
+    @Value("${datasource.maxWait}")
+    private int maxWait;
+
+    @Bean
+    public DruidDataSource dataSource() {
+        DruidDataSource ds = new DruidDataSource();
+        ds.setDriverClassName(driverClassName);
+        ds.setUrl(url);
+        ds.setUsername(username);
+        ds.setPassword(password);
+        ds.setInitialSize(initialSize);
+        ds.setMaxActive(maxActive);
+        ds.setMaxWait(maxWait);
+        return ds;
+    }
+    ...
+}
+由于个人觉得占位符的方法是SpEL中的一种，所以只展示这一种
+
+@PropertySource 引入属性文件
+
+使用 @Value 注入属性（相当于注入值的 bean，但是 SpEL 更为强大，还有其他用处）
+
+占位符 ${...}
+
+关于引用属性文件
+使用 @PropertySource 引入，如上
+
+javaconfig，使用 PropertySourcesPlaceholderConfigurer 引入
+
+@Bean
+public static PropertySourcesPlaceholderConfigurer placeholderConfigurer() {
+    PropertySourcesPlaceholderConfigurer placeholderConfigurer =
+        new PropertySourcesPlaceholderConfigurer();
+    placeholderConfigurer.setLocations(new ClassPathResource("application.properties"));
+    return placeholderConfigurer;
+}    
+xml 方式（这个没写，其实就是将javaconfig转换成xml配置即可）
