@@ -1,0 +1,92 @@
+public class FtspDateUtil {
+	
+	private static final Log log = LogFactory.getLog(FtspDateUtil.class);
+	
+	/** yyyy-MM-dd HH:mm:ss。 */ 
+	public static final String FORMAT_YMD_H24MS = "yyyy-MM-dd HH:mm:ss" ;
+	/** yyyy-MM-dd。  */ 
+	public static final String FORMAT_YMD = "yyyy-MM-dd" ;
+	/** yyyy年MM月dd日。  */ 
+	public static final String FORMAT_YMD_CN = "yyyy年MM月dd日" ;
+	/** yyyyMMdd。  */ 
+	public static final String FORMAT_YMD_TI = "yyyyMMdd" ;
+	
+	/** yyyyMM。*/ 
+	public static final String FORMAT_YM = "yyyyMM" ;
+	/** yyyy-MM。*/
+	public static final String FORMAT_Y_M = "yyyy-MM";
+	
+	/**
+	 * 这个类不能实例化。
+	 */
+	private FtspDateUtil(){}
+  
+  /**
+	 * 获取年月日当前时间。
+	 * @return String
+	 */
+	public static String getCurrTime() {
+		return parseDate(new Date(), FORMAT_YMD_H24MS);
+	}
+	
+    /**
+     * 获取年月日当前时间 yyyyMMddHHmmss。
+     * @return String
+     */
+	public static String getCurrTimeNoSeparator(){
+        String dateStr = getCurrTime();
+        return dateStr.replaceAll("-","").replaceAll(" ","").replaceAll(":","");
+    }
+
+	/**
+	 * 获取年月日当前时间。
+	 * @return String
+	 */
+	public static String getCurrDate() {
+		return parseDate(new Date(),FORMAT_YMD);
+	}
+	
+	/**
+	 * 获取年月日当前时间。
+	 * @return String
+	 */
+	public static String getCurrDateNoSep() {
+		return parseDate(new Date(),FORMAT_YMD_TI);
+	}
+  private static Date getLastDateOfQuater(int year, int month) {
+        Calendar calendar = Calendar.getInstance();
+        //设置年份
+        calendar.set(Calendar.YEAR,year);
+        switch (month){
+            case 1:
+            case 2:
+            case 3:
+                month = 2;
+                break;
+            case 4:
+            case 5:
+            case 6:
+                month = 5;
+                break;
+            case 7:
+            case 8:
+            case 9:
+                month = 8;
+                break;
+            case 10:
+            case 11:
+            case 12:
+                month = 11;
+                break;
+            default :
+                month = 2;
+        }
+        //设置月份
+        calendar.set(Calendar.MONTH, month);
+        //获取某月最大天数
+        int lastDay = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        //设置日历中月份的最大天数
+        calendar.set(Calendar.DAY_OF_MONTH, lastDay);
+        return calendar.getTime();
+    }
+	}
