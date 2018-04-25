@@ -1,0 +1,11 @@
+1、到官网下载安装包（压缩包）
+2、解压
+3、配置my.ini
+4、cmd打开bin目录
+5、执行mysqld --initialize-insecure --user=mysql生成data文件夹
+6、执行mysqld  install安装数据库
+7、执行net start mysql，启动数据库
+8、mysql -u root -p进入数据库，首次进入不需要密码，（随机密码在.err文件里面，首次有效）
+9、重置root密码update mysql.user set authentication_string=password('root') where user='root';
+10、 flush privileges;保存修改
+11、quit; 退出
