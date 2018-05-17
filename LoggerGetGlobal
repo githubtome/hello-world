@@ -1,0 +1,5 @@
+要生成简单的日志记录，可以使用全局日志记录器（global logger）并调用其info方法
+Logger.getGlobal().setLevel(Level.OFF);
+但是，在适当的地方调用
+Logger.getGlobal().info("Hello world Global log");
+将会取消所有的日志
